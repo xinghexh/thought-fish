@@ -351,35 +351,58 @@ window.__ModuleLoader__.load({
       return entry.lines ? entry.lines[0] : entry.text
     }
 
-    function orderEntries(entries, spendTier, avoidText) {
-      const copy = shuffleArray(entries)
-      if (spendTier === 10) {
-        const index = copy.findIndex((entry) => entry.text === SPEND_QUOTES[10][0])
-        if (index > 0) {
-          const rice = copy.splice(index, 1)[0]
-          copy.unshift(rice)
+    function orderEntries(entries, recentTexts, fallbackEntries) {
+      const recent = new Set(Array.isArray(recentTexts) ? recentTexts : [])
+      const pickFresh = (pool) => {
+        const shuffled = shuffleArray(pool)
+        const fresh = shuffled.filter((entry) => !recent.has(firstEntryText(entry)))
+        return fresh.length > 0 ? fresh : shuffled
+      }
+      let ordered = pickFresh(entries)
+      const allRecent = ordered.length > 0 && ordered.every((entry) => recent.has(firstEntryText(entry)))
+      if (allRecent && Array.isArray(fallbackEntries) && fallbackEntries.length > 0) {
+        ordered = pickFresh(fallbackEntries)
+      }
+      if (ordered.length > 1 && recent.has(firstEntryText(ordered[0]))) {
+        const last = recentTexts[recentTexts.length - 1]
+        if (firstEntryText(ordered[0]) === last) {
+          const swap = 1 + Math.floor(Math.random() * (ordered.length - 1))
+          const first = ordered[0]
+          ordered[0] = ordered[swap]
+          ordered[swap] = first
         }
       }
-      if (avoidText && copy.length > 1 && firstEntryText(copy[0]) === avoidText) {
-        const swap = 1 + Math.floor(Math.random() * (copy.length - 1))
-        const first = copy[0]
-        copy[0] = copy[swap]
-        copy[swap] = first
-      }
-      return copy
+      return ordered
     }
 
     function buildEntries(pokeTier, spendTier, weekday) {
       if (pokeTier > 0) return uniqueQuotes(POKE_QUOTES[pokeTier]).map((text) => ({ text }))
       if (spendTier > 0) return uniqueQuotes(SPEND_QUOTES[spendTier]).map((text) => ({ text }))
       const seen = new Set()
+      for (const list of Object.values(POKE_QUOTES)) {
+        for (const text of list) seen.add(text)
+      }
+      for (const list of Object.values(SPEND_QUOTES)) {
+        for (const text of list) seen.add(text)
+      }
       const singles = []
       for (const text of [...WEEKDAY_QUOTES[weekday], ...BASIC_QUOTES]) {
         if (seen.has(text)) continue
         seen.add(text)
         singles.push({ text })
       }
-      return [...singles, ...CHAINS.map((lines) => ({ lines }))]
+      const chains = []
+      for (const lines of CHAINS) {
+        const unique = []
+        for (const line of lines) {
+          if (seen.has(line)) continue
+          seen.add(line)
+          unique.push(line)
+        }
+        if (unique.length > 1) chains.push({ lines: unique })
+        else if (unique.length === 1) singles.push({ text: unique[0] })
+      }
+      return [...singles, ...chains]
     }
 
     function readStoredColors() {
@@ -432,6 +455,7 @@ window.__ModuleLoader__.load({
       const [settingsOpen, setSettingsOpen] = React.useState(false)
       const keywordBankRef = React.useRef([])
       const shownKeywordsRef = React.useRef(new Set())
+      const recentTextsRef = React.useRef([])
       const settingsRef = React.useRef(null)
       const popoverRef = React.useRef(null)
 
@@ -441,7 +465,8 @@ window.__ModuleLoader__.load({
       const pokeTier = recentClicks > 20 ? 20 : recentClicks > 10 ? 10 : recentClicks > 5 ? 5 : 0
 
       const entries = React.useMemo(() => buildEntries(pokeTier, spendTier, weekday), [pokeTier, spendTier, weekday])
-      const [order, setOrder] = React.useState(() => orderEntries(entries, spendTier))
+      const fallbackEntries = React.useMemo(() => buildEntries(0, 0, weekday), [weekday])
+      const [order, setOrder] = React.useState(() => orderEntries(entries, recentTextsRef.current, fallbackEntries))
       const [cursor, setCursor] = React.useState(0)
       const [chainIndex, setChainIndex] = React.useState(0)
 
@@ -453,10 +478,10 @@ window.__ModuleLoader__.load({
       }, [sessionId])
 
       React.useEffect(() => {
-        setOrder(orderEntries(entries, spendTier))
+        setOrder(orderEntries(entries, recentTextsRef.current, fallbackEntries))
         setCursor(0)
         setChainIndex(0)
-      }, [entries, spendTier])
+      }, [entries, fallbackEntries])
 
       React.useEffect(() => {
         if (!running) return
@@ -466,6 +491,7 @@ window.__ModuleLoader__.load({
         setOverride('')
         keywordBankRef.current = []
         shownKeywordsRef.current = new Set()
+        recentTextsRef.current = []
         setSettingsOpen(false)
         spendStore.refresh()
       }, [running])
@@ -523,8 +549,6 @@ window.__ModuleLoader__.load({
       if (effectiveTextColor) style['--dsh-thought-color'] = effectiveTextColor
       if (effectiveKeywordColor) style['--dsh-thought-keyword'] = effectiveKeywordColor
 
-      if (!running) return null
-
       const currentEntry = order.length > 0 ? order[cursor % order.length] : undefined
       const thought = currentEntry
         ? currentEntry.lines
@@ -532,24 +556,37 @@ window.__ModuleLoader__.load({
           : currentEntry.text
         : ''
 
+      const rememberThought = (text) => {
+        if (!text) return
+        const next = recentTextsRef.current.filter((item) => item !== text)
+        next.push(text)
+        if (next.length > 18) next.splice(0, next.length - 18)
+        recentTextsRef.current = next
+      }
+
+      React.useEffect(() => {
+        if (!running) return
+        rememberThought(thought)
+      }, [thought, running])
+
+      if (!running) return null
+
       function advanceEntry() {
         if (currentEntry && currentEntry.lines && chainIndex < currentEntry.lines.length - 1) {
-          setChainIndex(chainIndex + 1)
-        } else {
-          const nextCursor = cursor + 1
-          if (nextCursor < order.length) {
-            setCursor(nextCursor)
-            setChainIndex(0)
-          } else {
-            const lastText = currentEntry
-              ? currentEntry.lines
-                ? currentEntry.lines[currentEntry.lines.length - 1]
-                : currentEntry.text
-              : ''
-            setOrder(orderEntries(entries, spendTier, lastText))
-            setCursor(0)
-            setChainIndex(0)
+          const nextLine = currentEntry.lines[chainIndex + 1]
+          if (!recentTextsRef.current.includes(nextLine)) {
+            setChainIndex(chainIndex + 1)
+            return
           }
+        }
+        const nextCursor = cursor + 1
+        if (nextCursor < order.length) {
+          setCursor(nextCursor)
+          setChainIndex(0)
+        } else {
+          setOrder(orderEntries(entries, recentTextsRef.current, fallbackEntries))
+          setCursor(0)
+          setChainIndex(0)
         }
       }
 

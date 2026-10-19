@@ -14,10 +14,20 @@
 ### 从 GitHub 安装
 
 ```bash
-dsh plugin --profile <你的 profile> add github:<你的 GitHub 用户名>/thought-fish
+# Desktop
+dsh plugin --profile desktop add github:xinghexh/thought-fish
+
+# Web
+dsh plugin --profile web add github:xinghexh/thought-fish
 ```
 
-也可以把仓库 clone 下来，用 `plugin_manager` 的 `install_bundle` 指向仓库文件夹。
+如果你用的是自定义 profile，把 `desktop` / `web` 换成自己的 profile 名。也可以把仓库 clone 下来：
+
+```bash
+git clone https://github.com/xinghexh/thought-fish
+```
+
+然后用 `plugin_manager` 的 `install_bundle` 指向仓库文件夹。
 
 ## 语录
 
@@ -27,9 +37,9 @@ dsh plugin --profile <你的 profile> add github:<你的 GitHub 用户名>/thoug
 - `CHAINS`：4 组「关联话语」，点击后按组内顺序一条条出
 - `WEEKDAY_QUOTES`：周一到周日各一组
 - `POKE_QUOTES`：一分钟内点超过 5 / 10 / 20 次时切换
-- `SPEND_QUOTES`：**当前这一轮**估算花费超过 5 / 10 / 30 元时切换（>10 元这组第一句仍是「吃一点白饭没人发现吧。」）
+- `SPEND_QUOTES`：**当前这一轮**估算花费超过 5 / 10 / 30 元时切换（这组包含「吃一点白饭没人发现吧。」，但不会再强制每轮开头）
 
-普通模式的顺序是：当天星期几 → 关联话语 → 基础语录。同一轮内用洗牌袋随机抽取，不会连续重复；关联话语整组随机出现、组内按顺序；关键词从解析出的词里随机挑，避免连续同一个。
+普通模式的顺序是：当天星期几 → 关联话语 → 基础语录。同一轮内用洗牌袋随机抽取，并记住最近 18 条已经显示过的内容；点击时优先避开这些，关联话语整组随机出现、组内按顺序；被戳/花费的小语录组全部出现过后，会先用普通语录补位，避免马上绕回同一组。关键词从解析出的词里随机挑，避免连续同一个。
 
 ## 关键词 + 吗？
 
@@ -64,7 +74,7 @@ config:
 
 | 操作 | 效果 |
 |---|---|
-| 点这一行文字 | 换下一句；随机抽取，避免连续重复 |
+| 点这一行文字 | 换下一句；优先避开最近 18 条，不连续重复 |
 | 点文字右侧的小调色盘 | 打开颜色设置 |
 | 一分钟内点 >5 / >10 / >20 次 | 切到对应的「被戳」语录组 |
 | 当前轮花费过 5 / 10 / 30 元 | 切到对应的花费语录组 |
@@ -102,7 +112,7 @@ Host 半同时维护两份估算：
 
   ```bash
   git config user.name "thought-fish"
-  git config user.email "<你的 GitHub noreply 邮箱>"
+  git config user.email "YOUR_GITHUB_NOREPLY_EMAIL"
   ```
 
   推送前用 `git log --format='%an <%ae>'` 检查作者信息；用 GitHub 网页上传时，确认账号开启了 “Keep my email addresses private”，并使用 noreply 邮箱。
@@ -137,5 +147,6 @@ localStorage.removeItem('dsh-fish-demo-cny')
 
 - 运行状态行没有专属插槽，所以文字是悬浮在它右侧的同一水平线上，而不是写进原来的 DOM 行里。
 - 关键词是自动分词，偶尔会挑到「关键」「颜色」这类偏朴素的词；这正是「关键词吗？」的素材。
+- 语录总量有限，连续点到超过全部语录数量后最终仍会重复；插件会优先避开最近 18 条，不会马上重复。
 - 只统计 DSH 本机会话；平台账单以 DeepSeek 控制台为准。
 - 原始「深度求索」行、鲸鱼动画和 reasoning 正文都没有被替换或修改。
