@@ -11,6 +11,18 @@
 - **bundle**：用 `plugin_manager` 的 `install_bundle`，target 指向本文件夹
 - **skill**：读取同目录的 [SKILL.md](SKILL.md)
 
+### 从 npm 安装
+
+> npm 包发布前，请先用下面的 GitHub 安装方式。
+
+```bash
+# Desktop
+dsh plugin --profile desktop add dsh-thought-fish
+
+# Web
+dsh plugin --profile web add dsh-thought-fish
+```
+
 ### 从 GitHub 安装
 
 ```bash
@@ -126,7 +138,7 @@ Host 半同时维护两份估算：
 
   确认作者信息没问题后再推送。
 
-- `package.json` 里的 `@local/thought-fish` 是本地占位名；发布到 npm/插件市场前改成自己的公开包名（`private` 已去掉）。这不涉及个人信息。
+- 包名是 `dsh-thought-fish`；npm 发布后可直接用 `dsh plugin add dsh-thought-fish` 安装。
 - 仓库里不要提交 `.thought-fish-usage.json`、`node_modules/`、`*.log`、截图或 `.env`；仓库已带 `.gitignore` 做基础拦截。
 
 ## 调试

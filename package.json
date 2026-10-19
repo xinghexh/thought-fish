@@ -1,5 +1,5 @@
 {
-  "name": "@local/thought-fish",
+  "name": "dsh-thought-fish",
   "version": "1.0.0",
   "type": "module",
   "description": "Adds one configurable thought line to the right of the live Deep-diving row; keywords accumulate silently and surface as \"keyword?\" on click, with randomized quotes and adjustable colors.",
@@ -20,6 +20,27 @@
     "LICENSE",
     "preview/*.svg"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xinghexh/thought-fish.git"
+  },
+  "homepage": "https://github.com/xinghexh/thought-fish#readme",
+  "bugs": {
+    "url": "https://github.com/xinghexh/thought-fish/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek",
+    "dsh-plugin",
+    "plugin",
+    "thoughts",
+    "quotes",
+    "ui",
+    "decoration"
+  ],
+  "engines": {
+    "dsh": ">=0.2.1-rc.2"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"

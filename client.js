@@ -7,7 +7,7 @@
  * thought; a keyword parsed from the reasoning text turns into "{keyword}吗？".
  */
 window.__ModuleLoader__.load({
-  id: '@local/thought-fish',
+  id: 'dsh-thought-fish',
   factory(require) {
     const React = require('react')
     const h = React.createElement
