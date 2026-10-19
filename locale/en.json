@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Deep-Diving Thoughts",
+    "description": "Keeps the original Deep diving row untouched and adds one line of DeepSeek's thought to its right. Keywords accumulate silently and only become \"keyword?\" after a click; colors are adjustable from the palette."
+  }
+}

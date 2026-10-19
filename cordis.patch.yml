@@ -1,0 +1,8 @@
+# thought-fish: a small thought line to the right of the live Deep-diving row.
+- insert:
+    - id: thought-fish
+      name: '@local/thought-fish'
+      config:
+        # CSS color or theme token. Empty keeps the host theme color.
+        textColor: '#e8a33d'
+        keywordColor: '#4aa8e8'

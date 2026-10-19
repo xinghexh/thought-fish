@@ -1,0 +1,36 @@
+{
+  "name": "@local/thought-fish",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Adds one configurable thought line to the right of the live Deep-diving row; keywords accumulate silently and surface as \"keyword?\" on click, with randomized quotes and adjustable colors.",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "SKILL.md",
+    "LICENSE",
+    "preview/*.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-chat"
+      ]
+    }
+  },
+  "license": "MIT"
+}
